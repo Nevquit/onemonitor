@@ -171,20 +171,20 @@
       }
     }
 
-    function filterByStatus() {
-      var statusFilter = document.getElementById("statusFilter");
-      var selectedStatus = statusFilter.options[statusFilter.selectedIndex].value;
-      var table = document.getElementById("alarmTable");
-      var rows = table.getElementsByTagName("tr");
-      for (var i = 0; i < rows.length; i++) {
-        var status = rows[i].cells[2].textContent;
-        if (selectedStatus === "all" || selectedStatus === status) {
-          rows[i].style.display = "";
-        } else {
-          rows[i].style.display = "none";
-        }
-      }
-    }
+    // function filterByStatus() {
+    //   var statusFilter = document.getElementById("statusFilter");
+    //   var selectedStatus = statusFilter.options[statusFilter.selectedIndex].value;
+    //   var table = document.getElementById("alarmTable");
+    //   var rows = table.getElementsByTagName("tr");
+    //   for (var i = 0; i < rows.length; i++) {
+    //     var status = rows[i].cells[2].textContent;
+    //     if (selectedStatus === "all" || selectedStatus === status) {
+    //       rows[i].style.display = "";
+    //     } else {
+    //       rows[i].style.display = "none";
+    //     }
+    //   }
+    // }
     
     function search() {
       var input = document.getElementById("searchInput");
