@@ -177,14 +177,15 @@
       var status = select.value;
       var rows = table.getElementsByTagName("tr");
       for (var i = 0; i < rows.length; i++) {
-        if (rows[i].parentNode.nodeName === "TBODY") { // 判断是否为数据行
-          var cell = rows[i].querySelector("td:nth-child(2)");
+        var row = rows[i];
+        if (row.parentNode.nodeName === "TBODY") { // 判断是否为数据行
+          var cell = row.querySelector("td:nth-child(2)");
           if (cell) { // make sure cell exists
             var statusCell = cell.querySelector(".status");
             if (status === "all" || (status === "alert" && statusCell && statusCell.classList.contains("status-alert")) || (status === "ok" && statusCell && statusCell.classList.contains("status-ok"))) {
-              rows[i].style.display = "";
+              row.style.display = "";
             } else {
-              rows[i].style.display = "none";
+              row.style.display = "none";
             }
           }
         }
