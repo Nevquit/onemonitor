@@ -193,53 +193,56 @@
       }
     }
     // Sort table by column
-var table = document.getElementById("alarmTable");
-var ths = table.getElementsByTagName("th");
-for (var i = 0; i < ths.length; i++) {
-  ths[i].addEventListener("click", function() {
-    // Get the column index
-    var column = this.getAttribute("data-column");
-    var rows = Array.from(table.tBodies[0].rows);
+    var table = document.getElementById("alarmTable");
+    var ths = table.getElementsByTagName("th");
+    for (var i = 0; i < ths.length; i++) {
+        ths[i].addEventListener("click", function() {
+          // Get the column index
+          var column = this.getAttribute("data-column");
+          var rows = Array.from(table.tBodies[0].rows);
 
-    // Determine ascending or descending order
-    var order = this.classList.contains("ascending") ? -1 : 1;
+          // Determine ascending or descending order
+          var order = this.classList.contains("ascending") ? -1 : 1;
 
-    // Remove sorting classes from all columns except the current one
-    for (var j = 0; j < ths.length; j++) {
-      if (ths[j] !== this) {
-        ths[j].classList.remove("ascending");
-        ths[j].classList.remove("descending");
+          // Remove sorting classes from all columns except the current one
+          for (var j = 0; j < ths.length; j++) {
+            if (ths[j] !== this) {
+              ths[j].classList.remove("ascending");
+              ths[j].classList.remove("descending");
+            }
+          }
+
+          // Apply sorting class to current column
+          this.classList.toggle("ascending", order === 1);
+          this.classList.toggle("descending", order === -1);
+
+          // Sort rows based on column data
+          rows.sort(function(rowA, rowB) {
+            if (!rowA.cells[column] || !rowB.cells[column]) {
+              return 0;
+            }
+            var cellA = rowA.cells[column].textContent.trim();
+            var cellB = rowB.cells[column].textContent.trim();
+            if (cellA < cellB) {
+              return -1 * order;
+            } else if (cellA > cellB) {
+              return 1 * order;
+            } else {
+              return 0;
+            }
+          });
+
+          // Remove existing rows from table
+          while (table.tBodies[0].firstChild) {
+            table.tBodies[0].removeChild(table.tBodies[0].firstChild);
+          }
+
+          // Add sorted rows back to table
+          rows.forEach(function(row) {
+            table.tBodies[0].appendChild(row);
+          });
+        });
       }
-    }
-
-    // Apply sorting class to current column
-    this.classList.toggle("ascending", order === 1);
-    this.classList.toggle("descending", order === -1);
-
-    // Sort rows based on column data
-    rows.sort(function(rowA, rowB) {
-      var cellA = rowA.cells[column].textContent.trim();
-      var cellB = rowB.cells[column].textContent.trim();
-      if (cellA < cellB) {
-        return -1 * order;
-      } else if (cellA > cellB) {
-        return 1 * order;
-      } else {
-        return 0;
-      }
-    });
-
-    // Remove existing rows from table
-    while (table.tBodies[0].firstChild) {
-      table.tBodies[0].removeChild(table.tBodies[0].firstChild);
-    }
-
-    // Add sorted rows back to table
-    rows.forEach(function(row) {
-      table.tBodies[0].appendChild(row);
-    });
-  });
-}
     
   </script>
 </body>
