@@ -215,6 +215,14 @@
         }
         for (var k = 0; k < arr.length; k++) {
           table.tBodies[0].appendChild(arr[k].parentNode);
+          var tableHeaderCell = document.querySelector("th");
+
+          if (tableHeaderCell && tableHeaderCell.parentNode) {
+            // 访问表头单元格的父节点
+            // ...
+          } else {
+            console.error("无法访问表头单元格的父节点");
+          }
         }
       });
     }
