@@ -81,17 +81,21 @@
     .status-ok {
       background-color: #4CAF50;
     }
-    .status-alert {
-          display: inline-block;
-          width: 20px;
-          height: 20px;
-          border-radius: 50%;
-          margin-right: 5px;
-          background-color: #F44336;
-          text-indent: -9999px;
-          animation: blink 1s infinite;
-          border: 2px solid #fff;
+    @keyframes blink {
+        50% {
+          opacity: 0;
         }
+      }
+
+    .status-alert {
+      display: inline-block;
+      width: 20px;
+      height: 20px;
+      background-color: transparent;
+      border-radius: 50%;
+      border: 2px solid #F44336;
+      animation: blink 1s infinite;
+    }
     /* Hide the "Alert" and "OK" text */
     .status-alert, .status-ok {
       text-indent: -9999px;
