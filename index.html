@@ -78,7 +78,21 @@
       border: none;
       box-shadow: 0 1px 3px rgba(0,0,0,0.12);
     }
-    
+    #filterBox {
+      position: absolute;
+      top: 0;
+      right: 0;
+      margin: 20px;
+    }
+
+    #statusFilter {
+      padding: 5px;
+      font-size: 16px;
+      border-radius: 5px;
+      border: none;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.12);
+    }
+        
   </style>
   <link href="https://fonts.googleapis.com/css?family=Open+Sans&display=swap" rel="stylesheet">
 </head>
@@ -87,11 +101,14 @@
   <div id="searchBox">
     <input type="text" id="searchInput" onkeyup="search()" placeholder="Search for alarms...">
   </div>
-  <select id="statusFilter" onchange="filterByStatus()">
-    <option value="all">All</option>
-    <option value="alert">Alert</option>
-    <option value="ok">OK</option>
-  </select>
+  <div id="filterBox">
+    <label for="statusFilter">Filter by status:</label>
+    <select id="statusFilter" onchange="filterByStatus()">
+      <option value="all">All</option>
+      <option value="alert">Alert</option>
+      <option value="ok">OK</option>
+    </select>
+  </div>
   <table id="alarmTable">
     <thead>
       <tr>
