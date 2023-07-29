@@ -15,6 +15,7 @@
 
     /* Style the table */
     table {
+      position: relative; /* Add position property */
       width: 80%;
       margin: 0 auto;
       border-collapse: collapse;
@@ -70,17 +71,19 @@
       text-indent: -9999px;
     }
     
+    /* Add styles to move search and filter to table's top-right corner */
+    #searchInput, #statusFilter {
+      position: absolute;
+      top: 0;
+      right: 0;
+      margin: 10px;
+    }
+    
   </style>
   <link href="https://fonts.googleapis.com/css?family=Open+Sans&display=swap" rel="stylesheet">
 </head>
 <body>
   <h1 style="font-family: 'Brush Script MT', cursive;">𝓐𝓵𝓪𝓻𝓶 𝓛𝓲𝓼𝓽</h1>
-  <input type="text" id="searchInput" onkeyup="search()" placeholder="Search for alarms...">
-  <select id="statusFilter" onchange="filterByStatus()">
-    <option value="all">All</option>
-    <option value="alert">Alert</option>
-    <option value="ok">OK</option>
-  </select>
   <table id="alarmTable">
     <thead>
       <tr>
@@ -88,6 +91,17 @@
         <th data-column="status">Status</th>
         <th data-column="details">Details</th>
         <th data-column="history">History</th>
+      </tr>
+      <!-- Move search and filter to table's top-right corner -->
+      <tr>
+        <td colspan="4" style="text-align: right;">
+          <input type="text" id="searchInput" onkeyup="search()" placeholder="Search for alarms...">
+          <select id="statusFilter" onchange="filterByStatus()">
+            <option value="all">All</option>
+            <option value="alert">Alert</option>
+            <option value="ok">OK</option>
+          </select>
+        </td>
       </tr>
     </thead>
     <tbody>
@@ -115,76 +129,87 @@
           if (status === "OK") {
             statusCell.innerHTML = '<span class="status status-ok">OK</span>';
           } else if (status === "Alert") {
-            statusCell.innerHTML = '<span class="status status-alert">Alert</span>';
+            statusCell.innerHTML = '<span class="statusstatus-alert">Alert</span>';
           }
-          detailsCell.innerHTML = '<a href="' + json[key]["Details"] + '">View Details</a>';
-          historyCell.innerHTML = '<a href="' + json[key]["History"] + '">View History</a>';
+          detailsCell.innerHTML = '<a href="' + json[key]["Details"] + '">Details</a>';
+          historyCell.innerHTML = '<a href="' + json[key]["History"] + '">History</a>';
         }
       }
     };
     xhr.open("GET", "alarms.json", true);
     xhr.send();
-    
-    function filterByStatus() {
-      var table = document.getElementById("alarmTable");
-      var select = document.getElementById("statusFilter");
-      var status = select.value;
-      var rows= table.getElementsByTagName("tr");
 
-      // Loop through all rows, hide those that don't match the filter and show those that do match
-      for (var i = 0; i < rows.length; i++) {
-        var statusCell = rows[i].getElementsByTagName("td")[1];
-        var statusValue = statusCell.textContent || statusCell.innerText;
-        if (status === "all" || statusValue === status) {
-          rows[i].style.display = "";
-        } else {
-          rows[i].style.display = "none";
-        }
-      }
-    }
-    
+    // Search function
     function search() {
-      var input, filter, table, rows, cells, i, j, txtValue;
+      var input, filter, table, tr, td, i, txtValue;
       input = document.getElementById("searchInput");
       filter = input.value.toUpperCase();
       table = document.getElementById("alarmTable");
-      rows = table.getElementsByTagName("tr");
-
-      // Loop through all rows, hide those that don't match the search query and show those that do match
-      for (i = 0; i < rows.length; i++) {
-        cells = rows[i].getElementsByTagName("td");
-        for (j = 0; j < cells.length; j++) {
-          txtValue = cells[j].textContent || cells[j].innerText;
+      tr = table.getElementsByTagName("tr");
+      for (i = 0; i < tr.length; i++) {
+        td = tr[i].getElementsByTagName("td")[0];
+        if (td) {
+          txtValue = td.textContent || td.innerText;
           if (txtValue.toUpperCase().indexOf(filter) > -1) {
-            rows[i].style.display = "";
-            break;
+            tr[i].style.display = "";
           } else {
-            rows[i].style.display = "none";
+            tr[i].style.display = "none";
           }
         }
       }
     }
-    
-    function sortTable(n) {
-      var table, rows, switching, i, x, y, shouldSwitch, dir, switchcount = 0;
+
+    // Filter function
+    function filterByStatus() {
+      var select, option, table, tr, td, i;
+      select = document.getElementById("statusFilter");
+      option = select.value;
+      table = document.getElementById("alarmTable");
+      tr = table.getElementsByTagName("tr");
+      if (option === "all") {
+        for (i = 0; i < tr.length; i++) {
+          tr[i].style.display = "";
+        }
+      } else if (option === "alert") {
+        for (i = 0; i < tr.length; i++) {
+          td = tr[i].getElementsByTagName("td")[1];
+          if (td && td.innerHTML.indexOf("Alert") > -1) {
+            tr[i].style.display = "";
+          } else {
+            tr[i].style.display = "none";
+          }
+        }
+      } else if (option === "ok") {
+        for (i = 0; i < tr.length; i++) {
+          td = tr[i].getElementsByTagName("td")[1];
+          if (td && td.innerHTML.indexOf("OK") > -1) {
+            tr[i].style.display = "";
+          } else {
+            tr[i].style.display = "none";
+          }
+        }
+      }
+    }
+
+    // Sort function
+    var sortingOrder = "asc";
+    function sortTable(column) {
+      var table, rows, switching, i, x, y, shouldSwitch;
       table = document.getElementById("alarmTable");
       switching = true;
-      dir = "asc";
       while (switching) {
         switching = false;
         rows = table.getElementsByTagName("tr");
         for (i = 1; i < (rows.length - 1); i++) {
           shouldSwitch = false;
-          x = rows[i].getElementsByTagName("td")[n];
-          y = rows[i + 1].getElementsByTagName("td")[n];
-
-          // Check if the two rows should switch place, based on the direction, asc or desc
-          if (dir == "asc") {
+          x = rows[i].getElementsByTagName("td")[column];
+          y = rows[i + 1].getElementsByTagName("td")[column];
+          if (sortingOrder == "asc") {
             if (x.innerHTML.toLowerCase() > y.innerHTML.toLowerCase()) {
               shouldSwitch = true;
               break;
             }
-          } else if (dir == "desc") {
+          } else if (sortingOrder == "desc") {
             if (x.innerHTML.toLowerCase() < y.innerHTML.toLowerCase()) {
               shouldSwitch = true;
               break;
@@ -192,28 +217,19 @@
           }
         }
         if (shouldSwitch) {
-          // If a switch has been marked, make the switch and mark that a switch has been done
           rows[i].parentNode.insertBefore(rows[i + 1], rows[i]);
           switching = true;
-          switchcount ++;
-        } else {
-          // If no switch has been made and the direction is "asc", set the direction to "desc" and run the loop again
-          if (switchcount == 0 && dir == "asc") {
-            dir = "desc";
-            switching = true;
-          }
         }
       }
-      // Add the arrow symbol to indicate the sort direction
-      var th = table.getElementsByTagName("th");
-      for (i = 0; i < th.length; i++) {
-        th[i].classList.remove("ascending");
-        th[i].classList.remove("descending");
-      }
-      if (dir == "asc") {
-        th[n].classList.add("ascending");
-      } else if (dir == "desc") {
-        th[n].classList.add("descending");
+      // Toggle sorting order
+      if (sortingOrder == "asc") {
+        sortingOrder = "desc";
+        table.getElementsByClassName("ascending")[0].classList.remove("ascending");
+        table.getElementsByClassName("descending")[0].classList.add("ascending");
+      } else if (sortingOrder == "desc") {
+        sortingOrder = "asc";
+        table.getElementsByClassName("ascending")[0].classList.remove("ascending");
+        table.getElementsByClassName("descending")[0].classList.add("ascending");
       }
     }
   </script>
