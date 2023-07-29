@@ -1,0 +1,17 @@
+{
+    "Server Down": {
+      "Status": "OK",
+      "Details": "/detail.html",
+      "History": "/history.html"
+    },
+    "Low Disk Space": {
+      "Status": "Alert",
+      "Details": "/detail.html",
+      "History": "/history.html"
+    },
+    "Network Outage": {
+      "Status": "OK",
+      "Details": "/detail.html",
+      "History": "/history.html"
+    }
+  }

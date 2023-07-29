@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Alarm List</title>
+  <style>
+    /* Style the table */
+    table {
+      width: 80%;
+      border-collapse: collapse;
+      margin-bottom: 20px;
+      font-family: 'Open Sans', sans-serif;
+    }
+    th, td {
+      padding: 10px;
+      text-align: left;
+      border: 1px solid #ddd;
+    }
+    th {
+      background-color: #f2f2f2;
+      width: 30%;
+      cursor: pointer;
+    }
+    .ascending:after {
+      content: " ▲";
+    }
+    .descending:after {
+      content: " ▼";
+    }
+    tr:nth-child(even) {
+      background-color: #f9f9f9;
+    }
+    tr:hover {
+      background-color: #f5f5f5;
+    }
+    a {
+      color: blue;
+      text-decoration: none;
+    }
+    a:hover {
+      text-decoration: underline;
+    }
+    body {
+      background-color: #fff;
+    }
+    
+    .status {
+      display: inline-block;
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      margin-right: 5px;
+    }
+    .status-ok {
+      background-color: #4CAF50;
+    }
+    .status-alert {
+      background-color: #F44336;
+    }
+    /* Hide the "Alert" and "OK" text */
+    .status-alert, .status-ok {
+      text-indent: -9999px;
+    }
+    
+  </style>
+  <link href="https://fonts.googleapis.com/css?family=Open+Sans&display=swap" rel="stylesheet">
+</head>
+<body>
+  <h1>Alarm List</h1>
+  <input type="text" id="searchInput" onkeyup="search()" placeholder="Search for alarms...">
+  <select id="statusFilter" onchange="filterByStatus()">
+    <option value="all">All</option>
+    <option value="alert">Alert</option>
+    <option value="ok">OK</option>
+  </select>
+  <table id="alarmTable">
+    <thead>
+      <tr>
+        <th data-column="name">Alarm Name</th>
+        <th data-column="status">Status</th>
+        <th data-column="details">Details</th>
+        <th data-column="history">History</th>
+      </tr>
+    </thead>
+    <tbody>
+    </tbody>
+  </table>
+  <script>
+    // Load the JSON file
+    var xhr = new XMLHttpRequest();
+    xhr.onreadystatechange = function() {
+      if (this.readyState == 4 && this.status == 200) {
+        var json = JSON.parse(this.responseText);
+        var table = document.getElementById("alarmTable");
+        var tbody = table.getElementsByTagName("tbody")[0];
+
+        // Loop through each alarm and add a row to the table
+        for (var key in json) {
+          var row = tbody.insertRow(-1);
+          var nameCell = row.insertCell(0);
+          var statusCell = row.insertCell(1);
+          var detailsCell = row.insertCell(2);
+          var historyCell = row.insertCell(3);
+
+          nameCell.innerHTML = key;
+          var status = json[key]["Status"];
+          if (status === "OK") {
+            statusCell.innerHTML = '<span class="status status-ok">OK</span>';
+          } else if (status === "Alert") {
+            statusCell.innerHTML = '<span class="status status-alert">Alert</span>';
+          }
+          detailsCell.innerHTML = '<a href="' + json[key]["Details"] + '">View Details</a>';
+          historyCell.innerHTML = '<a href="' + json[key]["History"] + '">View History</a>';
+        }
+      }
+    };
+    xhr.open("GET", "alarms.json", true);
+    xhr.send();
+    
+    function filterByStatus() {
+      var table = document.getElementById("alarmTable");
+      var select = document.getElementById("statusFilter");
+      var status = select.value;
+      var rows = table.getElementsByTagName("tr");
+      for (var i = 0; i < rows.length; i++) {
+        var cell = rows[i].querySelector("td:nth-child(2)");
+        if (cell) { // make sure cell exists
+          var statusCell = cell.querySelector(".status");
+          if (status === "all" || (status === "alert" && statusCell && statusCell.classList.contains("status-alert")) || (status === "ok" && statusCell && statusCell.classList.contains("status-ok"))) {
+            rows[i].style.display = "";
+          } else {
+            rows[i].style.display = "none";
+          }
+        }
+      }
+    }
+    
+    function search() {
+      var input = document.getElementById("searchInput");
+      var filter = input.value.toUpperCase();
+      var table = document.getElementById("alarmTable");
+      var rows = table.getElementsByTagName("tr");
+      for (var i = 0; i < rows.length; i++) {
+        var cells = rows[i].getElementsByTagName("td");
+        var found = false;
+        for (var j = 0; j < cells.length; j++) {
+          var cell = cells[j];
+          if (cell) { // make sure cell exists
+            var text = cell.textContent || cell.innerText;
+            if (text.toUpperCase().indexOf(filter) > -1) {
+              found = true;
+              break;
+            }
+          }
+        }
+        if (found) {
+          rows[i].style.display = "";
+        } else {
+          rows[i].style.display = "none";
+        }
+      }
+    }
+    
+    function sortTable(column) {
+      var table = document.getElementById("alarmTable");
+      var rows = table.getElementsByTagName("tr");
+      var ascending = true;
+      if (table.getAttribute("data-sortby") === column) {
+        ascending = !table.getAttribute("data-ascending");
+      }
+      table.setAttribute("data-sortby", column);
+      table.setAttribute("data-ascending", ascending);
+      var multiplier = ascending ? 1 : -1;
+      var cellIndex;
+      if (column === "name") {
+        cellIndex = 0;
+      } else if (column === "status") {
+        cellIndex = 1;
+      } else if (column === "details") {
+        cellIndex = 2;
+      } else if (column === "history") {
+        cellIndex = 3;
+      }
+      for (var i = 1; i < rows.length; i++) {
+        var row = rows[i];
+        var currentValue = row.getElementsByTagName("td")[cellIndex].textContent.trim();
+        for (var j = 1; j < i; j++) {
+          var otherRow = rows[j];
+          var otherValue = otherRow.getElementsByTagName("td")[cellIndex].textContent.trim();
+          if (currentValue.localeCompare(otherValue) * multiplier < 0) {
+            table.insertBefore(row, otherRow);
+            break;
+          }
+        }
+      }
+      // Set the arrow icon on the column header
+      var headers = table.querySelectorAll("th");
+      for (var i = 0; i < headers.length; i++) {
+        var header = headers[i];
+        if (header.getAttribute("data-column") === column) {
+          if (ascending) {
+            header.classList.add("ascending");
+            header.classList.remove("descending");
+          } else {
+            header.classList.add("descending");
+            header.classList.remove("ascending");
+          }
+        } else {
+          header.classList.remove("ascending");
+          header.classList.remove("descending");
+        }
+      }
+    }
+    
+    var headers = document.querySelectorAll("th");
+    for (var i = 0; i < headers.length; i++) {
+      headers[i].addEventListener("click", function() {
+        var column = this.getAttribute("data-column");
+        sortTable(column);
+      });
+    }
+  </script>
+</body>
+</html>
