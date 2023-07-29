@@ -122,128 +122,118 @@
     </tbody>
   </table>
   <script>
-    // Load the JSON file
-    var xhr = new XMLHttpRequest();
-    xhr.onreadystatechange = function() {
-      if (this.readyState == 4 && this.status == 200) {
-        var json = JSON.parse(this.responseText);
-        var table = document.getElementById("alarmTable");
-        var tbody = table.getElementsByTagName("tbody")[0];
+    document.addEventListener("DOMContentLoaded", function() {
+      // Load the JSON file
+      var xhr = new XMLHttpRequest();
+      xhr.onreadystatechange = function() {
+        if (this.readyState == 4 && this.status == 200) {
+          var json = JSON.parse(this.responseText);
+          var table = document.getElementById("alarmTable");
+          var tbody = table.getElementsByTagName("tbody")[0];
 
-        // Loop through each alarm and add a row to the table
-        for (var key in json) {
-          var row = tbody.insertRow(-1);
-          var nameCell = row.insertCell(0);
-          var statusCell = row.insertCell(1);
-          var detailsCell = row.insertCell(2);
-          var historyCell = row.insertCell(3);
-
-          nameCell.innerHTML = key;
-          var status = json[key]["Status"];
-          if (status === "OK") {
-            statusCell.innerHTML = '<span class="status status-ok">OK</span>';
-          } else if (status === "Alert") {
-            statusCell.innerHTML = '<span class="status status-alert">Alert</span>';
-          }
-          detailsCell.innerHTML = '<a href="' + json[key]["Details"] + '">View Details</a>';
-          historyCell.innerHTML = '<a href="' + json[key]["History"] + '">View History</a>';
-
-        }
-      }
-    };
-    xhr.open("GET", "alarms.json", true);
-    xhr.send();
-
-    function filterByStatus() {
-      var table = document.getElementById("alarmTable");
-      var select = document.getElementById("statusFilter");
-      var status = select.value;
-      var rows = table.getElementsByTagName("tr");
-      for (var i = 0; i < rows.length; i++) {
-        var row = rows[i];
-        if (row.parentNode && row.parentNode.nodeName === "TBODY") {
-          var cell = row.querySelector("td:nth-child(2)");
-          if (cell) { // make sure cell exists
-            var statusCell = cell.querySelector(".status");
-            if (status === "all" || (status === "alert" && statusCell && statusCell.classList.contains("status-alert")) || (status === "ok" && statusCell && statusCell.classList.contains("status-ok"))) {
-              row.style.display = "";
-            } else {
-              row.style.display = "none";
+          // Loop through each alarm and add a row to the table
+          for (var key in json) {
+            if (json.hasOwnProperty(key)) {
+              var obj = json[key];
+              var row = tbody.insertRow(-1);
+              row.insertCell(0).innerHTML = obj.name;
+              var statusCell = row.insertCell(1);
+              statusCell.innerHTML = obj.status;
+              statusCell.classList.add("status");
+              if (obj.status.toLowerCase() == "ok") {
+                statusCell.classList.add("status-ok");
+              } else {
+                statusCell.classList.add("status-alert");
+              }
+              row.insertCell(2).innerHTML = obj.details;
+              var historyCell = row.insertCell(3);
+              var historyLink = document.createElement("a");
+              historyLink.href = obj.history;
+              historyLink.innerHTML = "View history";
+              historyCell.appendChild(historyLink);
             }
           }
         }
+      };
+      xhr.open("GET", "alarms.json", true);
+      xhr.send();
+    });
+
+    // Sort the table by column when the header is clicked
+    var sortColumn = "";
+    var sortOrder = "";
+    function sortTable(column) {
+      var table = document.getElementById("alarmTable");
+      var tbody = table.getElementsByTagName("tbody")[0];
+      var rows = tbody.getElementsByTagName("tr");
+      var arr = [];
+      var i, j, x, y;
+      for (i = 0; i < rows.length; i++) {
+        x = rows[i].getElementsByTagName("td")[column];
+        y = x.textContent || x.innerText;
+        arr.push([y, rows[i]]);
+      }
+      if (sortColumn == column && sortOrder == "ascending") {
+        arr.sort(function(a, b) {
+          return a[0] < b[0] ? 1 : -1;
+        });
+        sortOrder = "descending";
+      } else {
+        arr.sort(function(a, b) {
+          return a[0] > b[0] ? 1 : -1;
+        });
+        sortOrder = "ascending";
+      }
+      for (i = 0; i < arr.length; i++) {
+        tbody.appendChild(arr[i][1]);
+      }
+      // Remove the arrow icons from all header cells
+      var headers = table.getElementsByTagName("th");
+      for (i = 0; i < headers.length; i++) {
+        headers[i].classList.remove("ascending");
+        headers[i].classList.remove("descending");
+      }
+      // Add the arrow icon to the clicked header cell
+      var arrow = sortOrder == "ascending" ? " ▲" : " ▼";
+      headers[column].classList.add(sortOrder == "ascending" ? "ascending" : "descending");
+      headers[column].innerHTML = headers[column].textContent + arrow;
+      sortColumn = column;
+    }
+
+    // Filter the table by status
+    function filterByStatus() {
+      var statusFilter = document.getElementById("statusFilter");
+      var status = statusFilter.options[statusFilter.selectedIndex].value;
+      var table = document.getElementById("alarmTable");
+      var tbody = table.getElementsByTagName("tbody")[0];
+      var rows = tbody.getElementsByTagName("tr");
+      for (var i = 0; i < rows.length; i++) {
+        var statusCell = rows[i].getElementsByTagName("td")[1];
+        if (status == "all" || statusCell.textContent.toLowerCase() == status) {
+          rows[i].style.display = "";
+        } else {
+          rows[i].style.display = "none";
+        }
       }
     }
-    
+
+    // Search the table
     function search() {
       var input = document.getElementById("searchInput");
-      var filter = input.value.toUpperCase();
+      var filter = input.value.toLowerCase();
       var table = document.getElementById("alarmTable");
-      var rows = table.getElementsByTagName("tr");
+      var tbody = table.getElementsByTagName("tbody")[0];
+      var rows = tbody.getElementsByTagName("tr");
       for (var i = 0; i < rows.length; i++) {
-        var nameCell = rows[i].querySelector("td:nth-child(1)");
-        if (nameCell) { // make sure cell exists
-          var name = nameCell.textContent.toUpperCase();
-          if (name.indexOf(filter) > -1) {
-            rows[i].style.display = "";
-          } else {
-            rows[i].style.display = "none";
-          }
+        var nameCell = rows[i].getElementsByTagName("td")[0];
+        var detailsCell = rows[i].getElementsByTagName("td")[2];
+        if (nameCell.textContent.toLowerCase().indexOf(filter) > -1 || detailsCell.textContent.toLowerCase().indexOf(filter) > -1) {
+          rows[i].style.display = "";
+        } else {
+          rows[i].style.display = "none";
         }
       }
     }
-    // Sort table by column
-    var table = document.getElementById("alarmTable");
-    var ths = table.getElementsByTagName("th");
-    for (var i = 0; i < ths.length; i++) {
-        ths[i].addEventListener("click", function() {
-          // Get the column index
-          var column = this.getAttribute("data-column");
-          var rows = Array.from(table.tBodies[0].rows);
-
-          // Determine ascending or descending order
-          var order = this.classList.contains("ascending") ? -1 : 1;
-
-          // Remove sorting classes from all columns except the current one
-          for (var j = 0; j < ths.length; j++) {
-            if (ths[j] !== this) {
-              ths[j].classList.remove("ascending");
-              ths[j].classList.remove("descending");
-            }
-          }
-
-          // Apply sorting class to current column
-          this.classList.toggle("ascending", order === 1);
-          this.classList.toggle("descending", order === -1);
-
-          // Sort rows based on column data
-          rows.sort(function(rowA, rowB) {
-            if (!rowA.cells[column] || !rowB.cells[column]) {
-              return 0;
-            }
-            var cellA = rowA.cells[column].textContent.trim();
-            var cellB = rowB.cells[column].textContent.trim();
-            if (cellA < cellB) {
-              return -1 * order;
-            } else if (cellA > cellB) {
-              return 1 * order;
-            } else {
-              return 0;
-            }
-          });
-
-          // Remove existing rows from table
-          while (table.tBodies[0].firstChild) {
-            table.tBodies[0].removeChild(table.tBodies[0].firstChild);
-          }
-
-          // Add sorted rows back to table
-          rows.forEach(function(row) {
-            table.tBodies[0].appendChild(row);
-          });
-        });
-      }
-    
   </script>
 </body>
 </html>
