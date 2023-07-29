@@ -21,6 +21,7 @@
       margin-bottom: 20px;
       background-color: rgba(255, 255, 255, 0.7);
       backdrop-filter: blur(5px);
+      border-radius: 10px;
     }
     th, td {
       padding: 10px;
@@ -70,17 +71,39 @@
       text-indent: -9999px;
     }
     
+    /* Add styles for search and filter fields */
+    .search-filter {
+      display: flex;
+      justify-content: flex-end;
+      margin-bottom: 15px;
+    }
+    #searchInput, #statusFilter {
+      padding: 6px;
+      margin-left: 10px;
+      border-radius: 5px;
+      border: none;
+      background-color: rgba(255, 255, 255, 0.7);
+      backdrop-filter: blur(5px);
+      font-family: 'Open Sans', sans-serif;
+    }
+    #searchInput:focus, #statusFilter:focus {
+      outline: none;
+      box-shadow: 0 0 5px 0px #bbb;
+    }
+    
   </style>
   <link href="https://fonts.googleapis.com/css?family=Open+Sans&display=swap" rel="stylesheet">
 </head>
 <body>
   <h1 style="font-family: 'Brush Script MT', cursive;">𝓐𝓵𝓪𝓻𝓶 𝓛𝓲𝓼𝓽</h1>
-  <input type="text" id="searchInput" onkeyup="search()" placeholder="Search for alarms...">
-  <select id="statusFilter" onchange="filterByStatus()">
-    <option value="all">All</option>
-    <option value="alert">Alert</option>
-    <option value="ok">OK</option>
-  </select>
+  <div class="search-filter">
+    <input type="text" id="searchInput" onkeyup="search()" placeholder="Search for alarms...">
+    <select id="statusFilter" onchange="filterByStatus()">
+      <option value="all">All</option>
+      <option value="alert">Alert</option>
+      <option value="ok">OK</option>
+    </select>
+  </div>
   <table id="alarmTable">
     <thead>
       <tr>
@@ -110,110 +133,96 @@
           var detailsCell = row.insertCell(2);
           var historyCell = row.insertCell(3);
 
-          nameCell.innerHTML = key;
-          var status = json[key]["Status"];
-          if (status === "OK") {
-            statusCell.innerHTML = '<span class="status status-ok">OK</span>';
-          } else if (status === "Alert") {
-            statusCell.innerHTML = '<span class="status status-alert">Alert</span>';
-          }
-          detailsCell.innerHTML = '<a href="' + json[key]["Details"] + '">View Details</a>';
-          historyCell.innerHTML = '<a href="' + json[key]["History"] + '">View History</a>';
+          nameCell.innerHTML = json[key].name;
+          statusCell.innerHTML = '<div class="status ' + json[key].status.toLowerCase() + '">' + json[key].status + '</div>';
+          detailsCell.innerHTML = '<a href="' + json[key].detailsLink + '">View Details</a>';
+          historyCell.innerHTML = '<a href="' + json[key].historyLink + '">View History</a>';
         }
       }
     };
     xhr.open("GET", "alarms.json", true);
     xhr.send();
-    
-    function filterByStatus() {
-      var table = document.getElementById("alarmTable");
-      var select = document.getElementById("statusFilter");
-      var status = select.value;
-      var rows= table.getElementsByTagName("tr");
 
-      // Loop through all rows, hide those that don't match the filter and show those that do match
-      for (var i = 0; i < rows.length; i++) {
-        var statusCell = rows[i].getElementsByTagName("td")[1];
-        var statusValue = statusCell.textContent || statusCell.innerText;
-        if (status === "all" || statusValue === status) {
-          rows[i].style.display = "";
+    // Add sorting functionality to the table
+    var table = document.getElementById("alarmTable");
+    var headers = table.getElementsByTagName("th");
+    for (var i = 0; i < headers.length; i++) {
+      headers[i].addEventListener("click", function() {
+        var column = this.getAttribute("data-column");
+        var rows = Array.from(table.getElementsByTagName("tr")).slice(1); // exclude the header row
+        var isAscending = this.classList.toggle("ascending");
+        rows.sort(function(row1, row2) {
+          var cell1 = row1.getElementsByTagName("td")[getColumnIndex(column)];
+          var cell2 = row2.getElementsByTagName("td")[getColumnIndex(column)];
+          return compareCells(cell1, cell2);
+        });
+        if (!isAscending) {
+          rows.reverse();
+          this.classList.add("descending");
         } else {
-          rows[i].style.display = "none";
+          this.classList.remove("descending");
+        }
+        for (var j = 0; j < rows.length; j++) {
+          table.appendChild(rows[j]);
+        }
+      });
+    }
+
+    function getColumnIndex(columnName) {
+      var headers = table.getElementsByTagName("th");
+      for (var i = 0; i < headers.length; i++) {
+        if (headers[i].getAttribute("data-column") == columnName) {
+          return i;
         }
       }
+      return -1;
     }
-    
-    function search() {
-      var input, filter, table, rows, cells, i, j, txtValue;
-      input = document.getElementById("searchInput");
-      filter = input.value.toUpperCase();
-      table = document.getElementById("alarmTable");
-      rows = table.getElementsByTagName("tr");
 
-      // Loop through all rows, hide those that don't match the search query and show those that do match
-      for (i = 0; i < rows.length; i++) {
-        cells = rows[i].getElementsByTagName("td");
-        for (j = 0; j < cells.length; j++) {
-          txtValue = cells[j].textContent || cells[j].innerText;
-          if (txtValue.toUpperCase().indexOf(filter) > -1) {
+    function compareCells(cell1, cell2) {
+      var text1 = cell1.textContent.trim();
+      var text2 = cell2.textContent.trim();
+      if (text1 == text2) {
+        return 0;
+      }
+      if (!isNaN(text1) && !isNaN(text2)) {
+        return parseFloat(text1) - parseFloat(text2);
+      }
+      return text1.localeCompare(text2);
+    }
+
+    // Add search functionality to the table
+    function search() {
+      var input = document.getElementById("searchInput");
+      var filter = input.value.toUpperCase();
+      var rows = table.getElementsByTagName("tr");
+      for (var i = 1; i < rows.length; i++) { // exclude the header row
+        var nameCell = rows[i].getElementsByTagName("td")[0];
+        if (nameCell) {
+          var nameText = nameCell.textContent.toUpperCase();
+          if (nameText.indexOf(filter) > -1) {
             rows[i].style.display = "";
-            break;
           } else {
             rows[i].style.display = "none";
           }
         }
       }
     }
-    
-    function sortTable(n) {
-      var table, rows, switching, i, x, y, shouldSwitch, dir, switchcount = 0;
-      table = document.getElementById("alarmTable");
-      switching = true;
-      dir = "asc";
-      while (switching) {
-        switching = false;
-        rows = table.getElementsByTagName("tr");
-        for (i = 1; i < (rows.length - 1); i++) {
-          shouldSwitch = false;
-          x = rows[i].getElementsByTagName("td")[n];
-          y = rows[i + 1].getElementsByTagName("td")[n];
 
-          // Check if the two rows should switch place, based on the direction, asc or desc
-          if (dir == "asc") {
-            if (x.innerHTML.toLowerCase() > y.innerHTML.toLowerCase()) {
-              shouldSwitch = true;
-              break;
-            }
-          } else if (dir == "desc") {
-            if (x.innerHTML.toLowerCase() < y.innerHTML.toLowerCase()) {
-              shouldSwitch = true;
-              break;
-            }
+    // Add filter functionality to the table
+    function filterByStatus() {
+      var select = document.getElementById("statusFilter");
+      var filter = select.value.toLowerCase();
+      var rows = table.getElementsByTagName("tr");
+      for (var i = 1; i < rows.length; i++) { // exclude the header row
+        var statusCell = rows[i].getElementsByTagName("td")[1];
+        if (statusCell) {
+          var statusText = statusCell.textContent.toLowerCase();
+          if (filter == "all" || statusText.indexOf(filter) > -1) {
+            rows[i].style.display = "";
+          } else {
+            rows[i].style.display = "none";
           }
         }
-        if (shouldSwitch) {
-          // If a switch has been marked, make the switch and mark that a switch has been done
-          rows[i].parentNode.insertBefore(rows[i + 1], rows[i]);
-          switching = true;
-          switchcount ++;
-        } else {
-          // If no switch has been made and the direction is "asc", set the direction to "desc" and run the loop again
-          if (switchcount == 0 && dir == "asc") {
-            dir = "desc";
-            switching = true;
-          }
-        }
-      }
-      // Add the arrow symbol to indicate the sort direction
-      var th = table.getElementsByTagName("th");
-      for (i = 0; i < th.length; i++) {
-        th[i].classList.remove("ascending");
-        th[i].classList.remove("descending");
-      }
-      if (dir == "asc") {
-        th[n].classList.add("ascending");
-      } else if (dir == "desc") {
-        th[n].classList.add("descending");
       }
     }
   </script>
