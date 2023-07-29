@@ -146,6 +146,9 @@
     </tbody>
   </table>
   <script>
+    setInterval(function() {
+      location.reload();
+    }, 60000);
     // Load the JSON file
     var xhr = new XMLHttpRequest();
     xhr.onreadystatechange = function() {
