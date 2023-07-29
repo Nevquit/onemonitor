@@ -16,11 +16,10 @@
     /* Style the table */
     table {
       width: 80%;
-      margin: 0 auto;
+      margin: 50px auto 20px;
       border-collapse: collapse;
-      margin-bottom: 20px;
       background-color: rgba(255, 255, 255, 0.7);
-      backdrop-filter: blur(5px);
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
     }
     th, td {
       padding: 10px;
@@ -70,152 +69,172 @@
       text-indent: -9999px;
     }
     
+    /* Style the search and filter */
+    .search-filter {
+      text-align: right;
+      margin-bottom: 20px;
+      margin-right: 20px;
+    }
+    #searchInput {
+      padding: 5px;
+      border-radius: 5px;
+      border: none;
+      margin-right: 10px;
+    }
+    #statusFilter {
+      padding: 5px;
+      border-radius: 5px;
+      border: none;
+    }
+    #statusFilter option {
+      background-color: #f2f2f2;
+    }
+    
+    /* Style the h1 title */
+    h1 {
+      font-family: 'Brush Script MT', cursive;
+      font-size: 50px;
+      margin-top: 20px;
+    }
+    
+    /* Style the table background with a frosted glass effect */
+    .table-container {
+      background-color: rgba(255, 255, 255, 0.8);
+      backdrop-filter: blur(10px);
+      border-radius: 10px;
+      padding: 20px;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+    }
+    
   </style>
-  <link href="https://fonts.googleapis.com/css?family=Open+Sans&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css?family=Open+Sans|Brush+Script+MT&display=swap" rel="stylesheet">
 </head>
 <body>
-  <h1 style="font-family: 'Brush Script MT', cursive;">𝓐𝓵𝓪𝓻𝓶 𝓛𝓲𝓼𝓽</h1>
-  <input type="text" id="searchInput" onkeyup="search()" placeholder="Search for alarms...">
-  <select id="statusFilter" onchange="filterByStatus()">
-    <option value="all">All</option>
-    <option value="alert">Alert</option>
-    <option value="ok">OK</option>
-  </select>
-  <table id="alarmTable">
-    <thead>
-      <tr>
-        <th data-column="name">Alarm Name</th>
-        <th data-column="status">Status</th>
-        <th data-column="details">Details</th>
-        <th data-column="history">History</th>
-      </tr>
-    </thead>
-    <tbody>
-    </tbody>
-  </table>
+  <div class="search-filter">
+    <input type="text" id="searchInput" onkeyup="search()" placeholder="Search for alarms...">
+    <select id="statusFilter" onchange="filterByStatus()">
+      <option value="all">All</option>
+      <option value="alert">Alert</option>
+      <option value="ok">OK</option>
+    </select>
+  </div>
+  <div class="table-container">
+    <h1>𝓐𝓵𝓪𝓻𝓶 𝓛𝓲𝓼𝓽</h1>
+    <table id="alarmTable">
+      <thead>
+        <tr>
+          <th data-column="name">Alarm Name</th>
+          <th data-column="status">Status</th>
+          <th data-column="details">Details</th>
+          <th data-column="history">History</th>
+        </tr>
+      </thead>
+      <tbody>
+      </tbody>
+    </table>
+  </div>
   <script>
     // Load the JSON file
     var xhr = new XMLHttpRequest();
     xhr.onreadystatechange = function() {
       if (this.readyState == 4 && this.status == 200) {
-        var json = JSON.parse(this.responseText);
-        var table = document.getElementById("alarmTable");
-        var tbody = table.getElementsByTagName("tbody")[0];
-
-        // Loop through each alarm and add a row to the table
-        for (var key in json) {
-          var row = tbody.insertRow(-1);
+        var alarms = JSON.parse(this.responseText);
+        var tableBody = document.querySelector("#alarmTable tbody");
+        
+        // Populate the table with data from the JSON file
+        for (var i = 0; i < alarms.length; i++) {
+          var alarm = alarms[i];
+          var row = tableBody.insertRow(-1);
           var nameCell = row.insertCell(0);
           var statusCell = row.insertCell(1);
           var detailsCell = row.insertCell(2);
           var historyCell = row.insertCell(3);
-
-          nameCell.innerHTML = key;
-          var status = json[key]["Status"];
-          if (status === "OK") {
-            statusCell.innerHTML = '<span class="status status-ok">OK</span>';
-          } else if (status === "Alert") {
-            statusCell.innerHTML = '<span class="status status-alert">Alert</span>';
-          }
-          detailsCell.innerHTML = '<a href="' + json[key]["Details"] + '">View Details</a>';
-          historyCell.innerHTML = '<a href="' + json[key]["History"] + '">View History</a>';
+          
+          nameCell.innerHTML = alarm.name;
+          statusCell.innerHTML = "<div class='status status-" + alarm.status.toLowerCase() + "'>" + alarm.status + "</div>";
+          detailsCell.innerHTML = "<a href='" + alarm.detailsLink + "' target='_blank'>View Details</a>";
+          historyCell.innerHTML = "<a href='" + alarm.historyLink + "' target='_blank'>View History</a>";
         }
+        
+        // Make the table sortable by clicking on the column headers
+        var headers = document.querySelectorAll("#alarmTable th");
+        headers.forEach(function(header) {
+          header.addEventListener("click", function() {
+            var column = this.getAttribute("data-column");
+            var direction = this.getAttribute("data-direction");
+            var rows = Array.from(tableBody.querySelectorAll("tr"));
+            
+            // Sort the rows based on the column clicked and the sort direction
+            rows.sort(function(a, b) {
+              var aText = a.querySelector("td:nth-child(" + (headers.indexOf(header) + 1) + ")").textContent;
+              var bText = b.querySelector("td:nth-child(" + (headers.indexOf(header) + 1) + ")").textContent;
+              
+              if (column == "status") {
+                aText = a.querySelector(".status").classList.contains("status-ok") ? "ok" : "alert";
+                bText = b.querySelector(".status").classList.contains("status-ok") ? "ok" : "alert";
+              }
+              
+              if (direction == "ascending") {
+                return aText.localeCompare(bText);
+              } else {
+                return bText.localeCompare(aText);
+              }
+            });
+            
+            // Remove the existing rows and add the sorted rows back to the table
+            tableBody.innerHTML = "";
+            rows.forEach(function(row) {
+              tableBody.appendChild(row);
+            });
+            
+            // Update the sort direction indicator
+            headers.forEach(function(header) {
+              header.removeAttribute("data-direction");
+              header.classList.remove("ascending", "descending");
+            });
+            this.setAttribute("data-direction", direction == "ascending" ? "descending" : "ascending");
+            this.classList.toggle("ascending", direction == "ascending");
+            this.classList.toggle("descending", direction == "descending");
+          });
+        });
       }
+      
+      // Filter the table by status
+      filterByStatus = function() {
+        var selectedStatus = document.querySelector("#statusFilter").value;
+        var rows = Array.from(tableBody.querySelectorAll("tr"));
+        
+        rows.forEach(function(row) {
+          var status = row.querySelector(".status").classList.contains("status-ok") ? "ok" : "alert";
+          if (selectedStatus == "all" || status == selectedStatus) {
+            row.style.display = "";
+          } else {
+            row.style.display = "none";
+          }
+        });
+      };
+      
+      // Search the table for alarms
+      search = function() {
+        var searchTerm = document.querySelector("#searchInput").value.toLowerCase();
+        var rows = Array.from(tableBody.querySelectorAll("tr"));
+        
+        rows.forEach(function(row) {
+          var name = row.querySelector("td:nth-child(1)").textContent.toLowerCase();
+          if (name.includes(searchTerm)) {
+            row.style.display = "";
+          } else {
+            row.style.display = "none";
+          }
+        });
+      };
+      
+      // Call the filterByStatus function initially to show all alarms
+      filterByStatus();
+      
     };
     xhr.open("GET", "alarms.json", true);
     xhr.send();
-    
-    function filterByStatus() {
-      var table = document.getElementById("alarmTable");
-      var select = document.getElementById("statusFilter");
-      var status = select.value;
-      var rows= table.getElementsByTagName("tr");
-
-      // Loop through all rows, hide those that don't match the filter and show those that do match
-      for (var i = 0; i < rows.length; i++) {
-        var statusCell = rows[i].getElementsByTagName("td")[1];
-        var statusValue = statusCell.textContent || statusCell.innerText;
-        if (status === "all" || statusValue === status) {
-          rows[i].style.display = "";
-        } else {
-          rows[i].style.display = "none";
-        }
-      }
-    }
-    
-    function search() {
-      var input, filter, table, rows, cells, i, j, txtValue;
-      input = document.getElementById("searchInput");
-      filter = input.value.toUpperCase();
-      table = document.getElementById("alarmTable");
-      rows = table.getElementsByTagName("tr");
-
-      // Loop through all rows, hide those that don't match the search query and show those that do match
-      for (i = 0; i < rows.length; i++) {
-        cells = rows[i].getElementsByTagName("td");
-        for (j = 0; j < cells.length; j++) {
-          txtValue = cells[j].textContent || cells[j].innerText;
-          if (txtValue.toUpperCase().indexOf(filter) > -1) {
-            rows[i].style.display = "";
-            break;
-          } else {
-            rows[i].style.display = "none";
-          }
-        }
-      }
-    }
-    
-    function sortTable(n) {
-      var table, rows, switching, i, x, y, shouldSwitch, dir, switchcount = 0;
-      table = document.getElementById("alarmTable");
-      switching = true;
-      dir = "asc";
-      while (switching) {
-        switching = false;
-        rows = table.getElementsByTagName("tr");
-        for (i = 1; i < (rows.length - 1); i++) {
-          shouldSwitch = false;
-          x = rows[i].getElementsByTagName("td")[n];
-          y = rows[i + 1].getElementsByTagName("td")[n];
-
-          // Check if the two rows should switch place, based on the direction, asc or desc
-          if (dir == "asc") {
-            if (x.innerHTML.toLowerCase() > y.innerHTML.toLowerCase()) {
-              shouldSwitch = true;
-              break;
-            }
-          } else if (dir == "desc") {
-            if (x.innerHTML.toLowerCase() < y.innerHTML.toLowerCase()) {
-              shouldSwitch = true;
-              break;
-            }
-          }
-        }
-        if (shouldSwitch) {
-          // If a switch has been marked, make the switch and mark that a switch has been done
-          rows[i].parentNode.insertBefore(rows[i + 1], rows[i]);
-          switching = true;
-          switchcount ++;
-        } else {
-          // If no switch has been made and the direction is "asc", set the direction to "desc" and run the loop again
-          if (switchcount == 0 && dir == "asc") {
-            dir = "desc";
-            switching = true;
-          }
-        }
-      }
-      // Add the arrow symbol to indicate the sort direction
-      var th = table.getElementsByTagName("th");
-      for (i = 0; i < th.length; i++) {
-        th[i].classList.remove("ascending");
-        th[i].classList.remove("descending");
-      }
-      if (dir == "asc") {
-        th[n].classList.add("ascending");
-      } else if (dir == "desc") {
-        th[n].classList.add("descending");
-      }
-    }
   </script>
 </body>
 </html>
