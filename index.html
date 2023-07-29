@@ -5,6 +5,7 @@
   <title>Alarm List</title>
   <style>
     /* Style the table */
+
     body {
             background-image: url('index.jpg');
             background-size: cover;
@@ -81,8 +82,16 @@
       background-color: #4CAF50;
     }
     .status-alert {
-      background-color: #F44336;
-    }
+          display: inline-block;
+          width: 20px;
+          height: 20px;
+          border-radius: 50%;
+          margin-right: 5px;
+          background-color: #F44336;
+          text-indent: -9999px;
+          animation: blink 1s infinite;
+          border: 2px solid #fff;
+        }
     /* Hide the "Alert" and "OK" text */
     .status-alert, .status-ok {
       text-indent: -9999px;
