@@ -2,14 +2,25 @@
 <html>
 <head>
   <meta charset="UTF-8">
-  <title>Alarm List</title>
+  <title>𝓐𝓵𝓪𝓻𝓶 𝓛𝓲𝓼𝓽</title>
   <style>
+    /* Style the page */
+    body {
+      background-image: url('index.jpg');
+      background-size: cover;
+      background-repeat: no-repeat;
+      font-family: 'Open Sans', sans-serif;
+      text-align: center;
+    }
+
     /* Style the table */
     table {
       width: 80%;
+      margin: 0 auto;
       border-collapse: collapse;
       margin-bottom: 20px;
-      font-family: 'Open Sans', sans-serif;
+      background-color: rgba(255, 255, 255, 0.7);
+      backdrop-filter: blur(5px);
     }
     th, td {
       padding: 10px;
@@ -40,11 +51,6 @@
     a:hover {
       text-decoration: underline;
     }
-    body {
-      background-image: url('index.jpg');
-      background-size: cover;
-      background-repeat: no-repeat;
-    }
     
     .status {
       display: inline-block;
@@ -68,7 +74,7 @@
   <link href="https://fonts.googleapis.com/css?family=Open+Sans&display=swap" rel="stylesheet">
 </head>
 <body>
-  <h1>Alarm List</h1>
+  <h1 style="font-family: 'Brush Script MT', cursive;">𝓐𝓵𝓪𝓻𝓶 𝓛𝓲𝓼𝓽</h1>
   <input type="text" id="searchInput" onkeyup="search()" placeholder="Search for alarms...">
   <select id="statusFilter" onchange="filterByStatus()">
     <option value="all">All</option>
@@ -123,31 +129,35 @@
       var table = document.getElementById("alarmTable");
       var select = document.getElementById("statusFilter");
       var status = select.value;
-      var rows = table.getElementsByTagName("tr");
+      var rows= table.getElementsByTagName("tr");
+
+      // Loop through all rows, hide those that don't match the filter and show those that do match
       for (var i = 0; i < rows.length; i++) {
-        var cell = rows[i].querySelector("td:nth-child(2)");
-        if (cell) { // make sure cell exists
-          var statusCell = cell.querySelector(".status");
-          if (status === "all" || (status === "alert" && statusCell && statusCell.classList.contains("status-alert")) || (status === "ok" && statusCell && statusCell.classList.contains("status-ok"))) {
-            rows[i].style.display = "";
-          } else {
-            rows[i].style.display = "none";
-          }
+        var statusCell = rows[i].getElementsByTagName("td")[1];
+        var statusValue = statusCell.textContent || statusCell.innerText;
+        if (status === "all" || statusValue === status) {
+          rows[i].style.display = "";
+        } else {
+          rows[i].style.display = "none";
         }
       }
     }
     
     function search() {
-      var input = document.getElementById("searchInput");
-      var filter = input.value.toUpperCase();
-      var table = document.getElementById("alarmTable");
-      var rows = table.getElementsByTagName("tr");
-      for (var i = 0; i < rows.length; i++) {
-        var nameCell = rows[i].querySelector("td:nth-child(1)");
-        if (nameCell) { // make sure cell exists
-          var name = nameCell.textContent.toUpperCase();
-          if (name.indexOf(filter) > -1) {
+      var input, filter, table, rows, cells, i, j, txtValue;
+      input = document.getElementById("searchInput");
+      filter = input.value.toUpperCase();
+      table = document.getElementById("alarmTable");
+      rows = table.getElementsByTagName("tr");
+
+      // Loop through all rows, hide those that don't match the search query and show those that do match
+      for (i = 0; i < rows.length; i++) {
+        cells = rows[i].getElementsByTagName("td");
+        for (j = 0; j < cells.length; j++) {
+          txtValue = cells[j].textContent || cells[j].innerText;
+          if (txtValue.toUpperCase().indexOf(filter) > -1) {
             rows[i].style.display = "";
+            break;
           } else {
             rows[i].style.display = "none";
           }
@@ -155,44 +165,55 @@
       }
     }
     
-    // Sort table by column
-    var table = document.getElementById("alarmTable");
-    var ths = table.getElementsByTagName("th");
-    for (var i = 0; i < ths.length; i++) {
-      ths[i].addEventListener("click", function() {
-        var column = this.getAttribute("data-column");
-        var rows = table.rows;
-        var arr = [];
-        for (var j = 1; j < rows.length; j++) {
-          var cells = rows[j].cells;
-          arr.push(cells[Array.prototype.indexOf.call(cells, this)]);
+    function sortTable(n) {
+      var table, rows, switching, i, x, y, shouldSwitch, dir, switchcount = 0;
+      table = document.getElementById("alarmTable");
+      switching = true;
+      dir = "asc";
+      while (switching) {
+        switching = false;
+        rows = table.getElementsByTagName("tr");
+        for (i = 1; i < (rows.length - 1); i++) {
+          shouldSwitch = false;
+          x = rows[i].getElementsByTagName("td")[n];
+          y = rows[i + 1].getElementsByTagName("td")[n];
+
+          // Check if the two rows should switch place, based on the direction, asc or desc
+          if (dir == "asc") {
+            if (x.innerHTML.toLowerCase() > y.innerHTML.toLowerCase()) {
+              shouldSwitch = true;
+              break;
+            }
+          } else if (dir == "desc") {
+            if (x.innerHTML.toLowerCase() < y.innerHTML.toLowerCase()) {
+              shouldSwitch = true;
+              break;
+            }
+          }
         }
-        if (this.classList.contains("ascending")) {
-          arr.reverse();
-          this.classList.remove("ascending");
-          this.classList.add("descending");
+        if (shouldSwitch) {
+          // If a switch has been marked, make the switch and mark that a switch has been done
+          rows[i].parentNode.insertBefore(rows[i + 1], rows[i]);
+          switching = true;
+          switchcount ++;
         } else {
-          arr.sort(sortTable);
-          this.classList.remove("descending");
-          this.classList.add("ascending");
+          // If no switch has been made and the direction is "asc", set the direction to "desc" and run the loop again
+          if (switchcount == 0 && dir == "asc") {
+            dir = "desc";
+            switching = true;
+          }
         }
-        for (var k = 0; k < arr.length; k++) {
-          table.tBodies[0].appendChild(arr[k].parentNode);
-        }
-      });
-    }
-    
-    function sortTable(a, b) {
-      var aText = a.textContent.toLowerCase();
-      var bText = b.textContent.toLowerCase();
-      if (isNaN(aText) && isNaN(bText)) {
-        // Compare strings alphabetically
-        if (aText < bText) return -1;
-        if (aText > bText) return 1;
-        return 0;
-      } else {
-        // Compare numbers
-        return aText - bText;
+      }
+      // Add the arrow symbol to indicate the sort direction
+      var th = table.getElementsByTagName("th");
+      for (i = 0; i < th.length; i++) {
+        th[i].classList.remove("ascending");
+        th[i].classList.remove("descending");
+      }
+      if (dir == "asc") {
+        th[n].classList.add("ascending");
+      } else if (dir == "desc") {
+        th[n].classList.add("descending");
       }
     }
   </script>
