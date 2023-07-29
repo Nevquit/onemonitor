@@ -6,11 +6,11 @@
   <style>
     /* Style the table */
     table {
-      width: 80%;
-      border-collapse: collapse;
-      margin: auto;
-      font-family: 'Open Sans', sans-serif;
-    }
+            width: 80%;
+            border-collapse: collapse;
+            margin: auto;
+            font-family: 'Open Sans', sans-serif;
+          }
     th, td {
       padding: 10px;
       text-align: left;
@@ -19,6 +19,13 @@
     th {
       background-color: #f2f2f2;
       width: 30%;
+      cursor: pointer;
+    }
+    .ascending:after {
+      content: " ▲";
+    }
+    .descending:after {
+      content: " ▼";
     }
     tr:nth-child(even) {
       background-color: #f9f9f9;
@@ -38,6 +45,7 @@
       background-size: cover;
       background-repeat: no-repeat;
     }
+    
     .status {
       display: inline-block;
       width: 20px;
@@ -61,6 +69,7 @@
       right: 0;
       margin: 20px;
     }
+
     #searchInput {
       width: 200px;
       padding: 5px;
@@ -75,6 +84,7 @@
       right: 0;
       margin: 20px;
     }
+
     #statusFilter {
       padding: 5px;
       font-size: 16px;
@@ -82,6 +92,7 @@
       border: none;
       box-shadow: 0 1px 3px rgba(0,0,0,0.12);
     }
+        
   </style>
   <link href="https://fonts.googleapis.com/css?family=Open+Sans&display=swap" rel="stylesheet">
 </head>
@@ -91,20 +102,22 @@
     <input type="text" id="searchInput" onkeyup="search()" placeholder="Search for alarms...">
   </div>
   <table id="alarmTable">
+    
     <thead>
       <tr>
-        <th>Alarm Name</th>
-        <th>Status
+        <th data-column="name">Alarm Name</th>
+        <th data-column="status">Status
           <select id="statusFilter" onchange="filterByStatus()">
             <option value="all">All</option>
             <option value="ok">OK</option>
             <option value="alert">Alert</option>
           </select>
         </th>
-        <th>Details</th>
-        <th>History</th>
+        <th data-column="details">Details</th>
+        <th data-column="history">History</th>
       </tr>
     </thead>
+
     <tbody>
     </tbody>
   </table>
@@ -134,29 +147,103 @@
           }
           detailsCell.innerHTML = '<a href="' + json[key]["Details"] + '">View Details</a>';
           historyCell.innerHTML = '<a href="' + json[key]["History"] + '">View History</a>';
+
         }
       }
     };
-    xhr.open("GET", "很抱歉，似乎我的回答又被截断了。这是续上面的代码：
+    xhr.open("GET", "alarms.json", true);
+    xhr.send();
 
-    // Filter by status
     function filterByStatus() {
-      var statusFilter = document.getElementById("statusFilter").value;
       var table = document.getElementById("alarmTable");
-      var tbody = table.getElementsByTagName("tbody")[0];
-      var rows = tbody.getElementsByTagName("tr");
-
+      var select = document.getElementById("statusFilter");
+      var status = select.value;
+      var rows = table.getElementsByTagName("tr");
       for (var i = 0; i < rows.length; i++) {
-        var statusCell = rows[i].getElementsByTagName("td")[1];
-        var status = statusCell.getElementsByTagName("span")[0].getAttribute("class");
-
-        if (statusFilter === "all" || status.indexOf(statusFilter) !== -1) {
-          rows[i].style.display = "";
-        } else {
-          rows[i].style.display = "none";
+        var row = rows[i];
+        if (row.parentNode && row.parentNode.nodeName === "TBODY") {
+          var cell = row.querySelector("td:nth-child(2)");
+          if (cell) { // make sure cell exists
+            var statusCell = cell.querySelector(".status");
+            if (status === "all" || (status === "alert" && statusCell && statusCell.classList.contains("status-alert")) || (status === "ok" && statusCell && statusCell.classList.contains("status-ok"))) {
+              row.style.display = "";
+            } else {
+              row.style.display = "none";
+            }
+          }
         }
       }
     }
+    
+    function search() {
+      var input = document.getElementById("searchInput");
+      var filter = input.value.toUpperCase();
+      var table = document.getElementById("alarmTable");
+      var rows = table.getElementsByTagName("tr");
+      for (var i = 0; i < rows.length; i++) {
+        var nameCell = rows[i].querySelector("td:nth-child(1)");
+        if (nameCell) { // make sure cell exists
+          var name = nameCell.textContent.toUpperCase();
+          if (name.indexOf(filter) > -1) {
+            rows[i].style.display = "";
+          } else {
+            rows[i].style.display = "none";
+          }
+        }
+      }
+    }
+    // Sort table by column
+    var table = document.getElementById("alarmTable");
+    var ths = table.getElementsByTagName("th");
+    for (var i = 0; i < ths.length; i++) {
+        ths[i].addEventListener("click", function() {
+          // Get the column index
+          var column = this.getAttribute("data-column");
+          var rows = Array.from(table.tBodies[0].rows);
+
+          // Determine ascending or descending order
+          var order = this.classList.contains("ascending") ? -1 : 1;
+
+          // Remove sorting classes from all columns except the current one
+          for (var j = 0; j < ths.length; j++) {
+            if (ths[j] !== this) {
+              ths[j].classList.remove("ascending");
+              ths[j].classList.remove("descending");
+            }
+          }
+
+          // Apply sorting class to current column
+          this.classList.toggle("ascending", order === 1);
+          this.classList.toggle("descending", order === -1);
+
+          // Sort rows based on column data
+          rows.sort(function(rowA, rowB) {
+            if (!rowA.cells[column] || !rowB.cells[column]) {
+              return 0;
+            }
+            var cellA = rowA.cells[column].textContent.trim();
+            var cellB = rowB.cells[column].textContent.trim();
+            if (cellA < cellB) {
+              return -1 * order;
+            } else if (cellA > cellB) {
+              return 1 * order;
+            } else {
+              return 0;
+            }
+          });
+
+          // Remove existing rows from table
+          while (table.tBodies[0].firstChild) {
+            table.tBodies[0].removeChild(table.tBodies[0].firstChild);
+          }
+
+          // Add sorted rows back to table
+          rows.forEach(function(row) {
+            table.tBodies[0].appendChild(row);
+          });
+        });
+      }
+    
   </script>
 </body>
 </html>
