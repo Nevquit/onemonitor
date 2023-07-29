@@ -106,7 +106,13 @@
     <thead>
       <tr>
         <th data-column="name">Alarm Name</th>
-        <th data-column="status">Status</th>
+        <th data-column="status">Status
+          <select id="statusFilter" onchange="filterByStatus()">
+            <option value="all">All</option>
+            <option value="ok">OK</option>
+            <option value="alert">Alert</option>
+          </select>
+        </th>
         <th data-column="details">Details</th>
         <th data-column="history">History</th>
       </tr>
