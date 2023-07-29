@@ -153,38 +153,43 @@
     xhr.open("GET", "alarms.json", true);
     xhr.send();
     
+    // function filterByStatus() {
+    //   var table = document.getElementById("alarmTable");
+    //   var select = document.getElementById("statusFilter");
+    //   var status = select.value;
+    //   var rows = table.getElementsByTagName("tr");
+    //   for (var i = 0; i < rows.length; i++) {
+    //     var cell = rows[i].querySelector("td:nth-child(2)");
+    //     if (cell) { // make sure cell exists
+    //       var statusCell = cell.querySelector(".status");
+    //       if (status === "all" || (status === "alert" && statusCell && statusCell.classList.contains("status-alert")) || (status === "ok" && statusCell && statusCell.classList.contains("status-ok"))) {
+    //         rows[i].style.display = "";
+    //       } else {
+    //         rows[i].style.display = "none";
+    //       }
+    //     }
+    //   }
+    // }
+
     function filterByStatus() {
       var table = document.getElementById("alarmTable");
       var select = document.getElementById("statusFilter");
       var status = select.value;
       var rows = table.getElementsByTagName("tr");
       for (var i = 0; i < rows.length; i++) {
-        var cell = rows[i].querySelector("td:nth-child(2)");
-        if (cell) { // make sure cell exists
-          var statusCell = cell.querySelector(".status");
-          if (status === "all" || (status === "alert" && statusCell && statusCell.classList.contains("status-alert")) || (status === "ok" && statusCell && statusCell.classList.contains("status-ok"))) {
-            rows[i].style.display = "";
-          } else {
-            rows[i].style.display = "none";
+        if (rows[i].parentNode.nodeName === "TBODY") { // 判断是否为数据行
+          var cell = rows[i].querySelector("td:nth-child(2)");
+          if (cell) { // make sure cell exists
+            var statusCell = cell.querySelector(".status");
+            if (status === "all" || (status === "alert" && statusCell && statusCell.classList.contains("status-alert")) || (status === "ok" && statusCell && statusCell.classList.contains("status-ok"))) {
+              rows[i].style.display = "";
+            } else {
+              rows[i].style.display = "none";
+            }
           }
         }
       }
     }
-
-    // function filterByStatus() {
-    //   var statusFilter = document.getElementById("statusFilter");
-    //   var selectedStatus = statusFilter.options[statusFilter.selectedIndex].value;
-    //   var table = document.getElementById("alarmTable");
-    //   var rows = table.getElementsByTagName("tr");
-    //   for (var i = 0; i < rows.length; i++) {
-    //     var status = rows[i].cells[2].textContent;
-    //     if (selectedStatus === "all" || selectedStatus === status) {
-    //       rows[i].style.display = "";
-    //     } else {
-    //       rows[i].style.display = "none";
-    //     }
-    //   }
-    // }
     
     function search() {
       var input = document.getElementById("searchInput");
