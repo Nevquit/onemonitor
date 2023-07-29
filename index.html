@@ -193,49 +193,6 @@
       }
     }
     
-    // Sort table by column
-    var table = document.getElementById("alarmTable");
-    var ths = table.getElementsByTagName("th");
-    for (var i = 0; i < ths.length; i++) {
-      ths[i].addEventListener("click", function() {
-        var column = this.getAttribute("data-column");
-        var rows = table.rows;
-        var arr = [];
-        for (var j = 1; j < rows.length; j++) {
-          var cells = rows[j].cells;
-          arr.push(cells[Array.prototype.indexOf.call(cells, this)]);
-        }
-        if (this.classList.contains("ascending")) {
-          arr.reverse();
-          this.classList.remove("ascending");
-          this.classList.add("descending");
-        } else {
-          arr.sort(sortTable);
-          this.classList.remove("descending");
-          this.classList.add("ascending");
-        }
-        for (var k = 0; k < arr.length; k++) {
-          table.tBodies[0].appendChild(arr[k].parentNode);
-          var tableHeaderCell = document.querySelector("th");
-          console.log("tableHeaderCell: ", tableHeaderCell);
-          console.log("tableHeaderCell.parentNode: ", tableHeaderCell.parentNode);
-        }
-      });
-    }
-    
-    function sortTable(a, b) {
-      var aText = a.textContent.toLowerCase();
-      var bText = b.textContent.toLowerCase();
-      if (isNaN(aText) && isNaN(bText)) {
-        // Compare strings alphabetically
-        if (aText < bText) return -1;
-        if (aText > bText) return 1;
-        return 0;
-      } else {
-        // Compare numbers
-        return aText - bText;
-      }
-    }
   </script>
 </body>
 </html>
