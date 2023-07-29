@@ -149,16 +149,6 @@
           historyCell.innerHTML = '<a href="' + json[key]["History"] + '">View History</a>';
 
         }
-
-        // 排序表格的代码
-        var table = document.getElementById("alarmTable");
-        var ths = table.getElementsByTagName("th");
-        // ...
-        
-        // 输出表头单元格及其父节点的信息
-        var tableHeaderCell = document.querySelector("th");
-        console.log("tableHeaderCell: ", tableHeaderCell);
-        console.log("tableHeaderCell.parentNode: ", tableHeaderCell.parentNode);
       }
     };
     xhr.open("GET", "alarms.json", true);
