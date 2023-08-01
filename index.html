@@ -101,39 +101,42 @@
         }
       }
 
-      // Generate the table content dynamically
-      function generateTable(data) {
-        const monitorTable = document.getElementById("monitor-table");
-        for (const monitor in data) {
-          const status = data[monitor]["Status"];
-          const details = data[monitor]["Details"];
-          const history = data[monitor]["History"];
+// Generate the table content dynamically
+function generateTable(data) {
+  const monitorTable = document.getElementById("monitor-table");
+  for (const monitor in data) {
+    const status = data[monitor]["Status"];
+    const details = data[monitor]["Details"];
+    const history = data[monitor]["History"];
 
-          const row = document.createElement("tr");
-          const nameCell = document.createElement("td");
-          nameCell.textContent = monitor;
-          const statusCell = document.createElement("td");
-          statusCell.textContent = status;
-          statusCell.classList.add(getStatusClass(status));
-          const detailsCell = document.createElement("td");
-          const detailsLink = document.createElement("a");
-          detailsLink.href = details;
-          detailsLink.textContent = "Details";
-          detailsCell.appendChild(detailsLink);
-          const historyCell = document.createElement("td");
-          const historyLink = document.createElement("a");
-          historyLink.href = history;
-          historyLink.textContent = "History";
-          historyCell.appendChild(historyLink);
+    // Process the name to capitalize the first letter of each word and remove underscores
+    const name = monitor.replace(/_/g, " ").replace(/\b\w/g, l => l.toUpperCase());
 
-          row.appendChild(nameCell);
-          row.appendChild(statusCell);
-          row.appendChild(detailsCell);
-          row.appendChild(historyCell);
+    const row = document.createElement("tr");
+    const nameCell = document.createElement("td");
+    nameCell.textContent = name;
+    const statusCell = document.createElement("td");
+    statusCell.textContent = status;
+    statusCell.classList.add(getStatusClass(status));
+    const detailsCell = document.createElement("td");
+    const detailsLink = document.createElement("a");
+    detailsLink.href = details;
+    detailsLink.textContent = "Details";
+    detailsCell.appendChild(detailsLink);
+    const historyCell = document.createElement("td");
+    const historyLink = document.createElement("a");
+    historyLink.href = history;
+    historyLink.textContent = "History";
+    historyCell.appendChild(historyLink);
 
-          monitorTable.appendChild(row);
-        }
-      }
+    row.appendChild(nameCell);
+    row.appendChild(statusCell);
+    row.appendChild(detailsCell);
+    row.appendChild(historyCell);
+
+    monitorTable.appendChild(row);
+  }
+}
 
       // Load the JSON file dynamically and generate the table content
       fetch(url)
