@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8">
+    <title>Monitoring Status</title>
+    <style>
+      table {
+        border-collapse: collapse;
+        width: 100%;
+      }
+      th:first-child, td:first-child {
+        width: 30%;
+      }
+      th, td {
+        padding: 8px;
+        text-align: left;
+        border-bottom: 1px solid #ddd;
+      }
+      th {
+        background-color: #f2f2f2;
+      }
+      .status-ok::before {
+        content: "";
+        display: inline-block;
+        width: 20px;
+        height: 20px;
+        border-radius: 50%;
+        background-color: green;
+        margin-right: 4px;
+        vertical-align: middle;
+      }
+      .status-alert::before {
+        content: "";
+        display: inline-block;
+        width: 20px;
+        height: 20px;
+        border-radius: 50%;
+        background-color: red;
+        margin-right: 4px;
+        vertical-align: middle;
+        animation: blink 1s infinite;
+      }
+      @keyframes blink {
+        0% {
+          opacity: 1;
+        }
+        50% {
+          opacity: 0;
+        }
+        100% {
+          opacity: 1;
+        }
+      }
+      .status-ok, .status-alert {
+        font-size: 0;
+        font-weight: bold;
+      }
+      .status-ok {
+        color: green;
+      }
+      .status-alert {
+        color: red;
+      }
+      .status-error {
+        color: red;
+        font-weight: bold;
+      }
+      #search-bar {
+        width: 10%;
+        margin-bottom: 16px;
+        padding: 4px;
+        box-sizing: border-box;
+        font-size: 14px;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Monitoring Status</h1>
+    <input type="text" id="search-bar" placeholder="Search alarms...">
+    <table>
+      <tr>
+        <th>Monitor Name</th>
+        <th>Status</th>
+        <th>Details</th>
+        <th>History</th>
+      </tr>
+      <tbody id="monitor-table"></tbody>
+    </table>
+    <script>
+      // Define the URL of the JSON file to be loaded
+      const url = "https://raw.githubusercontent.com/Nevquit/onemonitor_data/main/alarms.json";
+
+      // Get the CSS class name to display the status
+      function getStatusClass(status) {
+        if (status === "OK") {
+          return "status-ok";
+        } else if (status === "Alert") {
+          return "status-alert";
+        } else {
+          return "status-error";
+        }
+      }
+
+      // Generate the table content dynamically
+      function generateTable(data) {
+        const monitorTable = document.getElementById("monitor-table");
+        for (const monitor in data) {
+          const status = data[monitor]["Status"];
+          const details = data[monitor]["Details"];
+          const history = data[monitor]["History"];
+
+          const row = document.createElement("tr");
+          const nameCell = document.createElement("td");
+          nameCell.textContent = monitor;
+          const statusCell = document.createElement("td");
+          statusCell.textContent = status;
+          statusCell.classList.add(getStatusClass(status));
+          const detailsCell = document.createElement("td");
+          const detailsLink = document.createElement("a");
+          detailsLink.href = details;
+          detailsLink.textContent = "Details";
+          detailsCell.appendChild(detailsLink);
+          const historyCell = document.createElement("td");
+          const historyLink = document.createElement("a");
+          historyLink.href = history;
+          historyLink.textContent = "History";
+          historyCell.appendChild(historyLink);
+
+          row.appendChild(nameCell);
+          row.appendChild(statusCell);
+          row.appendChild(detailsCell);
+          row.appendChild(historyCell);
+
+          monitorTable.appendChild(row);
+        }
+      }
+
+      // Load the JSON file dynamically and generate the table content
+      fetch(url)
+        .then(response => response.json())
+        .then(data => {
+          generateTable(data);
+          const searchBar = document.getElementById("search-bar");
+          searchBar.addEventListener("input", () => {
+            const filter = searchBar.value.toLowerCase();
+            const rows = document.querySelectorAll("#monitor-table tr");
+            rows.forEach(row => {
+              const name = row.querySelector("td:first-child").textContent.toLowerCase();
+              if (name.includes(filter)) {
+                row.style.display = "";
+              } else {
+                row.style.display = "none";
+              }
+            });
+          });
+        });
+    </script>
+  </body>
+</html>
