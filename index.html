@@ -170,7 +170,7 @@
             <option value="alert">Alert</option>
           </select>
         </th>
-        <th data-column="details">Details</th>
+<!--         <th data-column="details">Details</th> -->
         <th data-column="history">History</th>
       </tr>
     </thead>
@@ -195,17 +195,19 @@
           var row = tbody.insertRow(-1);
           var nameCell = row.insertCell(0);
           var statusCell = row.insertCell(1);
-          var detailsCell = row.insertCell(2);
+          // var detailsCell = row.insertCell(2);
           var historyCell = row.insertCell(3);
 
-          nameCell.innerHTML = key;
+          // nameCell.innerHTML = key;
+          nameCell.innerHTML = '<a href="' + json[key]["Details"] + '">'+ key +'</a>';
+
           var status = json[key]["Status"];
           if (status === "OK") {
             statusCell.innerHTML = '<span class="status status-ok">OK</span>';
           } else if (status === "Alert") {
             statusCell.innerHTML = '<span class="status status-alert">Alert</span>';
           }
-          detailsCell.innerHTML = '<a href="' + json[key]["Details"] + '">View Details</a>';
+          // detailsCell.innerHTML = '<a href="' + json[key]["Details"] + '">View Details</a>';
           historyCell.innerHTML = '<a href="' + json[key]["History"] + '">View History</a>';
           // // detailsCell.innerHTML = '<a href="' + json[key]["Details"] + '"><object type="image/svg+xml" data="details.svg"></object></a>';
           // // historyCell.innerHTML = '<a href="' + json[key]["History"] + '"><object type="image/svg+xml" data="history.svg"></object></a>';
