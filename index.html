@@ -104,9 +104,11 @@
         }
       }
 
+
 // Generate the table content dynamically
 function generateTable(data) {
   const monitorTable = document.getElementById("monitor-table");
+  monitorTable.innerHTML = ""; // Clear the table before generating new content
   for (const monitor in data) {
     const status = data[monitor]["Status"];
     const details = data[monitor]["Details"];
@@ -141,25 +143,25 @@ function generateTable(data) {
   }
 }
 
-      // Load the JSON file dynamically and generate the table content
-      fetch(url)
-        .then(response => response.json())
-        .then(data => {
-          generateTable(data);
-          const searchBar = document.getElementById("search-bar");
-          searchBar.addEventListener("input", () => {
-            const filter = searchBar.value.toLowerCase();
-            const rows = document.querySelectorAll("#monitor-table tr");
-            rows.forEach(row => {
-              const name = row.querySelector("td:first-child").textContent.toLowerCase();
-              if (name.includes(filter)) {
-                row.style.display = "";
-              } else {
-                row.style.display = "none";
-              }
-            });
-          });
-        });
+// Load the JSON file dynamically and generate the table content
+function loadJSON() {
+  fetch(url)
+    .then(response => response.json())
+    .then(data => {
+      generateTable(data);
+    });
+}
+
+// Refresh the JSON data and table content periodically
+function refreshData() {
+  loadJSON();
+  setInterval(loadJSON, 60000);
+}
+
+// Call the refreshData function to start loading and refreshing the JSON data
+refreshData();
+
+// ...
     </script>
   </body>
 </html>
