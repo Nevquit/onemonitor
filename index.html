@@ -162,6 +162,25 @@ function refreshData() {
 refreshData();
 
 // ...
+// Get the search bar element
+const searchBar = document.getElementById("search-bar");
+
+// Listen for input event on the search bar
+searchBar.addEventListener("input", function() {
+  const searchTerm = searchBar.value.toLowerCase(); // Get the search term and convert it to lowercase
+
+  const rows = document.querySelectorAll("#monitor-table tr"); // Get all table rows
+
+  // Iterate through each row, hide non-matching rows and display matching rows
+  for (const row of rows) {
+    const name = row.cells[0].textContent.toLowerCase(); // Get the monitor name and convert it to lowercase
+    if (name.includes(searchTerm)) {
+      row.style.display = ""; // Display matching rows
+    } else {
+      row.style.display = "none"; // Hide non-matching rows
+    }
+  }
+});
     </script>
   </body>
 </html>
