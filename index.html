@@ -4,7 +4,74 @@
     <meta charset="UTF-8">
     <title>Monitoring Status</title>
     <style>
-      /* CSS styles */
+      table {
+        border-collapse: collapse;
+        width: 100%;
+      }
+      th:first-child, td:first-child {
+        width: 30%;
+      }
+      th, td {
+        padding: 8px;
+        text-align: left;
+        border-bottom: 1px solid #ddd;
+      }
+      th {
+        background-color: #f2f2f2;
+      }
+      .status-ok::before {
+        content: "";
+        display: inline-block;
+        width: 20px;
+        height: 20px;
+        border-radius: 50%;
+        background-color: green;
+        margin-right: 4px;
+        vertical-align: middle;
+      }
+      .status-alert::before {
+        content: "";
+        display: inline-block;
+        width: 20px;
+        height: 20px;
+        border-radius: 50%;
+        background-color: red;
+        margin-right: 4px;
+        vertical-align: middle;
+        animation: blink 1s infinite;
+      }
+      @keyframes blink {
+        0% {
+          opacity: 1;
+        }
+        50% {
+          opacity: 0;
+        }
+        100% {
+          opacity: 1;
+        }
+      }
+      .status-ok, .status-alert {
+        font-size: 0;
+        font-weight: bold;
+      }
+      .status-ok {
+        color: green;
+      }
+      .status-alert {
+        color: red;
+      }
+      .status-error {
+        color: red;
+        font-weight: bold;
+      }
+      #search-bar {
+        width: 10%;
+        margin-bottom: 16px;
+        padding: 4px;
+        box-sizing: border-box;
+        font-size: 14px;
+      }
     </style>
   </head>
   <body>
@@ -20,58 +87,11 @@
       <tbody id="monitor-table"></tbody>
     </table>
     <script>
-      // Create the callback function
-      function handleData(data) {
-        // Generate the table content dynamically
-        function generateTable(data) {
-          const monitorTable = document.getElementById("monitor-table");
-          monitorTable.innerHTML = ""; // Clear the table before generating new content
-          for (const monitor in data) {
-            const status = data[monitor]["Status"];
-            const details = data[monitor]["Details"];
-            const history = data[monitor]["History"];
-
-            // Process the name to capitalize the first letter of each word and remove underscores
-            const name = monitor.replace(/_/g, " ").replace(/\b\w/g, l => l.toUpperCase());
-
-            const row = document.createElement("tr");
-            const nameCell = document.createElement("td");
-            nameCell.textContent = name;
-            const statusCell = document.createElement("td");
-            statusCell.textContent = status;
-            statusCell.classList.add(getStatusClass(status));
-            const detailsCell = document.createElement("td");
-            const detailsLink = document.createElement("a");
-            detailsLink.href = details;
-            detailsLink.textContent = "Details";
-            detailsCell.appendChild(detailsLink);
-            const historyCell = document.createElement("td");
-            const historyLink = document.createElement("a");
-            historyLink.href = history;
-            historyLink.textContent = "History";
-            historyCell.appendChild(historyLink);
-
-            row.appendChild(nameCell);
-            row.appendChild(statusCell);
-            row.appendChild(detailsCell);
-            row.appendChild(historyCell);
-
-            monitorTable.appendChild(row);
-          }
-        }
-
-        generateTable(data);
-      }
-
-      // Create the JSONP request
-      function loadJSONP() {
-        const script = document.createElement("script");
-        script.src = "https://raw.githubusercontent.com/Nevquit/onemonitor_data/main/alarms.json?callback=handleData";
-        document.head.appendChild(script);
-      }
-
-      // Load the JSONP data
-      loadJSONP();
+      // setInterval(function() {
+      // location.reload();
+      // }, 60000);
+      // Define the URL of the JSON file to be loaded
+      const url = "https://raw.githubusercontent.com/Nevquit/onemonitor_data/main/alarms.json";
 
       // Get the CSS class name to display the status
       function getStatusClass(status) {
@@ -84,25 +104,83 @@
         }
       }
 
-      // Get the search bar element
-      const searchBar = document.getElementById("search-bar");
 
-      // Listen for input event on the search bar
-      searchBar.addEventListener("input", function() {
-        const searchTerm = searchBar.value.toLowerCase(); // Get the search term and convert it to lowercase
+// Generate the table content dynamically
+function generateTable(data) {
+  const monitorTable = document.getElementById("monitor-table");
+  monitorTable.innerHTML = ""; // Clear the table before generating new content
+  for (const monitor in data) {
+    const status = data[monitor]["Status"];
+    const details = data[monitor]["Details"];
+    const history = data[monitor]["History"];
 
-        const rows = document.querySelectorAll("#monitor-table tr"); // Get all table rows
+    // Process the name to capitalize the first letter of each word and remove underscores
+    const name = monitor.replace(/_/g, " ").replace(/\b\w/g, l => l.toUpperCase());
 
-        // Iterate through each row, hide non-matching rows and display matching rows
-        for (const row of rows) {
-          const name = row.cells[0].textContent.toLowerCase(); // Get the monitor name and convert it to lowercase
-          if (name.includes(searchTerm)) {
-            row.style.display = ""; // Display matching rows
-          } else {
-            row.style.display = "none"; // Hide non-matching rows
-          }
-        }
-      });
+    const row = document.createElement("tr");
+    const nameCell = document.createElement("td");
+    nameCell.textContent = name;
+    const statusCell = document.createElement("td");
+    statusCell.textContent = status;
+    statusCell.classList.add(getStatusClass(status));
+    const detailsCell = document.createElement("td");
+    const detailsLink = document.createElement("a");
+    detailsLink.href = details;
+    detailsLink.textContent = "Details";
+    detailsCell.appendChild(detailsLink);
+    const historyCell = document.createElement("td");
+    const historyLink = document.createElement("a");
+    historyLink.href = history;
+    historyLink.textContent = "History";
+    historyCell.appendChild(historyLink);
+
+    row.appendChild(nameCell);
+    row.appendChild(statusCell);
+    row.appendChild(detailsCell);
+    row.appendChild(historyCell);
+
+    monitorTable.appendChild(row);
+  }
+}
+
+// Load the JSON file dynamically and generate the table content
+function loadJSON() {
+  fetch(url)
+    .then(response => response.json())
+    .then(data => {
+      generateTable(data);
+    });
+}
+
+// Refresh the JSON data and table content periodically
+function refreshData() {
+  loadJSON();
+  setInterval(loadJSON, 10000);
+}
+
+// Call the refreshData function to start loading and refreshing the JSON data
+refreshData();
+
+// ...
+// Get the search bar element
+const searchBar = document.getElementById("search-bar");
+
+// Listen for input event on the search bar
+searchBar.addEventListener("input", function() {
+  const searchTerm = searchBar.value.toLowerCase(); // Get the search term and convert it to lowercase
+
+  const rows = document.querySelectorAll("#monitor-table tr"); // Get all table rows
+
+  // Iterate through each row, hide non-matching rows and display matching rows
+  for (const row of rows) {
+    const name = row.cells[0].textContent.toLowerCase(); // Get the monitor name and convert it to lowercase
+    if (name.includes(searchTerm)) {
+      row.style.display = ""; // Display matching rows
+    } else {
+      row.style.display = "none"; // Hide non-matching rows
+    }
+  }
+});
     </script>
   </body>
 </html>
