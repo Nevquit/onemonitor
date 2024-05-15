@@ -76,6 +76,13 @@
   </head>
   <body>
     <h1>Monitoring Status</h1>
+    <label for="status-filter">Filter by Status:</label>
+    <select id="status-filter">
+      <option value="All">All</option>
+      <option value="OK">OK</option>
+      <option value="Alert">Alert</option>
+      <option value="Error">Error</option>
+    </select>
     <input type="text" id="search-bar" placeholder="Search alarms...">
     <table>
       <tr>
@@ -117,20 +124,10 @@
           const nameCell = document.createElement("td");
           nameCell.textContent = name;
           row.appendChild(nameCell);
-          
-          // Create a select element for status and add options
           const statusCell = document.createElement("td");
-          const statusSelect = document.createElement("select");
-          statusSelect.innerHTML = `
-            <option value="OK">OK</option>
-            <option value="Alert">Alert</option>
-            <option value="Error">Error</option>
-          `;
-          statusSelect.value = status;
-          statusSelect.classList.add(getStatusClass(status)); // Add class based on status
-          statusCell.appendChild(statusSelect);
+          statusCell.textContent = status;
+          statusCell.classList.add(getStatusClass(status)); // Add class based on status
           row.appendChild(statusCell);
-
           const detailsCell = document.createElement("td");
           const detailsLink = document.createElement("a");
           detailsLink.href = details;
@@ -169,6 +166,9 @@
       // Get the search bar element
       const searchBar = document.getElementById("search-bar");
 
+      // Get the status filter select element
+      const statusFilter = document.getElementById("status-filter");
+
       // Listen for input event on the search bar
       searchBar.addEventListener("input", function() {
         const searchTerm = searchBar.value.toLowerCase(); // Get the search term and convert it to lowercase
@@ -182,6 +182,28 @@
             row.style.display = ""; // Display matching rows
           } else {
             row.style.display = "none"; // Hide non-matching rows
+          }
+        }
+      });
+
+      // Listen for change event on the status filter select element
+      statusFilter.addEventListener("change", function() {
+        const selectedStatus = statusFilter.value; // Get the selected status
+
+        const rows = document.querySelectorAll("#monitor-table tr"); // Get all table rows
+
+        // Iterate through each row, hide non-matching rows and display matching rows
+        for (const row of rows) {
+          if (selectedStatus === "All") {
+            row.style.display = ""; // Display all rows if "All" is selected
+          } else {
+            const statusCell = row.querySelector("td:nth-child(2)"); // Get the status cell of the current row
+            const status = statusCell.textContent; // Get the status
+            if (status === selectedStatus) {
+              row.style.display = ""; // Display rows with selected status
+            } else {
+              row.style.display = "none"; // Hide rows with other statuses
+            }
           }
         }
       });
